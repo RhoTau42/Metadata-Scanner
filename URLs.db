@@ -1,0 +1,22 @@
+# Database of URLs for Metadata_Scanner.sh script.
+# ======================================================================
+# Usage:
+# ======================================================================
+# NOTE: Any line\s with a single hashtag (#) will be ignored by the script.
+# 1.  Paste URLs to the top of the file. Starting from line 11. (See 3)
+# 2.  Only full URLs will be scanned (http(or)s://domain.something.something)
+# 3.  Enter a new line and paste URLs below:
+# See examples below. You can delete them.
+# ======================================================================
+# https://thehackernews.com/
+https://seekingalpha.com/
+# https://dividaat.com/
+https://www.cnbc.com/
+https://www.yahoo.com/
+https://www.fxp.co.il/
+https://www.loveme.co.il/
+# https://www.wsj.com/
+https://hamas.ps/
+# http://irangov.ir/
+https://edition.cnn.com/
+https://walla.co.il/
