@@ -15,8 +15,8 @@ A script to find GPS metadata and hidden data within images from webpages recurs
   
   **Bad:** `/root/home/Desktop/Some\ Directory\ with\ spaces/Metadata_Scanner.sh`
 
-## Description:
-The script does the following:
+## Full Work Flow:
+**The script does the following:**
 1.  Installs Nipe (Anonymity) and activates it.
 2.  Installs ExifTool if you don't have it.
 3.  Makes sure that Nipe is active before starting the script.
