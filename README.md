@@ -6,7 +6,9 @@ A script to find GPS metadata and hidden data within images from webpages recurs
   2. run `./Metadata_scanner`
   
   Make sure you have the URL.db file in the same directory.
+  
   **DO NOT CHANGE THE DIRECTORY NAME `Project_Metadata` AS IT'S HARD-CODED IN THE SCRIPT**
+  
   **DO NOT PUT THE SCRIPT IN A DIRECTORY WITH SPACES - THE SCRIPT WILL BREAK IF YOU WILL**
   
   **Good:**
