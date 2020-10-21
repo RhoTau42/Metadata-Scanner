@@ -11,11 +11,9 @@ A script to find GPS metadata and hidden data within images from webpages recurs
   
   **DO NOT PUT THE SCRIPT IN A DIRECTORY WITH SPACES - THE SCRIPT WILL BREAK IF YOU WILL**
   
-  **Good:**
-    `/root/home/Desktop/Project_Metadata/Metadata_Scanner.sh`
+  **Good:** `/root/home/Desktop/Project_Metadata/Metadata_Scanner.sh`
   
-  **Bad:**
-    `/root/home/Desktop/Some\ Directory\ with\ spaces/Metadata_Scanner.sh`
+  **Bad:** `/root/home/Desktop/Some\ Directory\ with\ spaces/Metadata_Scanner.sh`
 
 ## Description:
 The script does the following:
