@@ -1,5 +1,5 @@
 # Metadata-Scanner                                                                      
-A script to find GPS metadata and hidden data within images from webpages recursivley.
+A script to find GPS metadata and hidden data within images from webpages recursively.
 
 ## Usage:
   1. Modify the URLs.db to your liking (Sites that you want to scan).
