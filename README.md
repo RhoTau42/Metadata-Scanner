@@ -27,8 +27,8 @@ A script to find GPS metadata and hidden data within images from webpages recurs
 For more information about how to properly use and work with the script - **see 'User Manual.pdf' file**.
 
 **`scan.sh` will do the following:**
-7.  Scans all images with `Exiftool` for GPS metadata. **If any is found** - copies the images to another directory for further analysis.
-8.  Scans all images with `Binwalk` for hidden data. **If any is found** - copies the images to another directory for further analysis.
-9.  Skips images that it had scanned before, saving time and power.
-10.  Removes images that it had scanned before.
+7.  Scans all images with `Exiftool` for GPS metadata. **If any is found** - copies the images to another directory for further analysis.</br>
+8.  Scans all images with `Binwalk` for hidden data. **If any is found** - copies the images to another directory for further analysis.</br>
+9.  Skips images that it had scanned before, saving time and power.</br>
+10. Removes images that it had scanned before.</br>
 
