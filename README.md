@@ -26,7 +26,7 @@ A script to find GPS metadata and hidden data within images from webpages recurs
 6.  The script creates another script (`Continue_After_Reboot.sh`) that starts the `Metadata_Scanner` from the last point it was terminated and in background.
 For more information about how to properly use and work with the script - **see 'User Manual.pdf' file**.
 
-**`scan.sh` will do the following:**
+**`scan.sh` will do the following:**</br>
 7.  Scans all images with `Exiftool` for GPS metadata. **If any is found** - copies the images to another directory for further analysis.</br>
 8.  Scans all images with `Binwalk` for hidden data. **If any is found** - copies the images to another directory for further analysis.</br>
 9.  Skips images that it had scanned before, saving time and power.</br>
