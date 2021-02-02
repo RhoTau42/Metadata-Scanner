@@ -15,107 +15,54 @@
 
 # Basic variables:
 echo "Loading... Please hold."
-DIRPATH=$(find / -type d -name "Project_Metadata" 2>/dev/null) # Sets the location of the script's directory.
+DIRPATH=$(find / -type d -name "Metadata-Scanner" 2>/dev/null) # Sets the location of the script's directory.
 SCRIPT=Metadata_Scanner.sh # Sets the script's name.
 DOWNLOADEDIMAGES=$DIRPATH/Downloaded_Images # Sets the Downloaded Images directory.
 STEPS=$DIRPATH/Steps.log # Sets the completed steps log file.
 DB=$DIRPATH/URLs.db # Sets the database location.
 PWD=$(pwd) # Sets the current working directory as variable.
 USER=$(whoami) # Sets the current user as variable.
+PID=$(ps aux | grep wget | grep robots | awk '{print $2}')
 
 # Start of infinite Loop (The infinite scan):
 function SCAN {
   echo "$(date -u): [!] [STARTING] SCAN." | tee -a $STEPS
-  while [[ true ]]; do
       for FULLURL in $(cat $DB | grep -v '#'); do # greps only URLs.
         echo "Downloading from $FULLURL to Downloaded_Images..."
         # Downloads images only from the URLs:
-        wget -e robots=off -nd -r -q --mirror --no-cookies --level=inf --no-check-certificate --no-cache -T 30 --ignore-length -np -P $DOWNLOADEDIMAGES -A jpeg,jpg,bmp,gif,png,webp,exif,tiff,webp,heif,bat $FULLURL 2>/dev/null # (-e: Execute - no robots file, -nd: No Directories, -r: Recursive, -q: Quiet, no output, --level: Recursive depth level=infinite, -T: Timeout <secs>, --ignore-length, -np: No accend to Parent directory, -P: Prefix location)
+        wget -e robots=off -nd -r -q --mirror --no-cookies --level=inf --no-check-certificate --no-cache -T 30 --ignore-length -np -P $DOWNLOADEDIMAGES -A jpeg,jpg,bmp,gif,png,webp,exif,tiff,webp,heif,bat $FULLURL 2>/dev/null
         rm $DOWNLOADEDIMAGES/*.tmp 2>/dev/null # Removes .tmp files before scanning.
         rm $DIRPATH/wget-log* 2>/dev/null
-
-        # Checks if images scanned before. If yes - removes them.
-        for IMAGE in $(ls $DOWNLOADEDIMAGES); do
-          HASH1=$(sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}' 2>/dev/null) # Sets sha256 hash variable.
-          HASHINFILE1=$(cat $DIRPATH/Logs/GPS_Metadata/Scanned_GPS_Hashes.lst 2>/dev/null | grep -c $HASH1) # Greps the count of how many times the hash occures in the Scanned_GPS_Hashes.log file.
-          if [[ $HASHINFILE1 -eq 1 ]]; then
-            rm $DOWNLOADEDIMAGES/$IMAGE # Removes the image.
-          fi
         done
-        # Checks if images scanned before. If yes - removes them.
-        for IMAGE in $(ls $DOWNLOADEDIMAGES); do
-          HASH2=$(sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}' 2>/dev/null) # Sets sha256 hash variable.
-          HASHINFILE2=$(cat $DIRPATH/Logs/Hidden_Data/Scanned_Hidden_Data_Hashes.lst 2>/dev/null | grep -c $HASH2) # Greps the count of how many times the hash occures in the Scanned_GPS_Hashes.log file.
-          if [[ $HASHINFILE2 -eq 1 ]]; then
-            rm $DOWNLOADEDIMAGES/$IMAGE # Removes the image.
-          fi
-        done
-
-        # Exiftool scan:
-        for IMAGE in $(ls $DOWNLOADEDIMAGES); do # For every image - do commands:
-          HASH1=$(sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}') # Sets sha256 hash variable.
-          HASHINFILE1=$(cat $DIRPATH/Logs/GPS_Metadata/Scanned_GPS_Hashes.lst 2>/dev/null | grep -c $HASH1) # Greps the count of how many times the hash occures in the Scanned_GPS_Hashes.log file.
-          if [[ $HASHINFILE1 -eq 0 ]]; then # If the hash never occured in the file - do commnads.
-            if [[ $(exiftool $DOWNLOADEDIMAGES/$IMAGE | grep 'GPS\|File Name' | wc -l) -gt "1" ]]; then # If line count is > 1 - do commands.
-              echo "[!] [FOUND]: $IMAGE from $FULLURL has the following GPS Metadata:" >> $DIRPATH/Logs/GPS_Metadata/GPS_Metadata.log # Logs the file name in the log.
-              exiftool $DOWNLOADEDIMAGES/$IMAGE | grep 'GPS\|File Name' >> $DIRPATH/Logs/GPS_Metadata/GPS_Metadata.log # Outputs the exiftool output with just the File Name & GPS info to the log.
-              cp $DOWNLOADEDIMAGES/$IMAGE $DIRPATH/Logs/GPS_Metadata # Copies the suspicious image to a folder.
-              echo "[>] [COPIED]: $IMAGE to Logs/GPS_Metadata for further analysis." >> $DIRPATH/Logs/GPS_Metadata/GPS_Metadata.log
-              echo "" >> $DIRPATH/Logs/GPS_Metadata/GPS_Metadata.log # Just to seperate the outputs.
-              sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}' >> $DIRPATH/Logs/GPS_Metadata/Scanned_GPS_Hashes.lst # Logs the sha256 hash to the Scanned_GPS_Hashes.lst file.
-            else
-              sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}' >> $DIRPATH/Logs/GPS_Metadata/Scanned_GPS_Hashes.lst # Logs the sha256 hash to the Scanned_GPS_Hashes.lst file.
-            fi
-          fi
-        done # End for IMAGE loop. (exiftool)
-
-        # Binwalk scan:
-        for IMAGE in $(ls $DOWNLOADEDIMAGES); do # For every image - do commands:
-          HASH2=$(sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}') # Sets sha256 hash variable.
-          HASHINFILE2=$(cat $DIRPATH/Logs/Hidden_Data/Scanned_Hidden_Data_Hashes.lst 2>/dev/null | grep -c $HASH2) # Greps the count of how many times the hash occures in the Scanned_GPS_Hashes.log file.
-          if [[ $HASHINFILE2 -eq 0 ]]; then # If the hash never occured in the file - do commnads.
-            if [[ $(binwalk $DOWNLOADEDIMAGES/$IMAGE | wc -l) -gt "6" ]]; then # If binwalk outputs more than 5 lines than - do commands.
-              echo "[!] [FOUND]: suspicious file: $IMAGE from $FULLURL, you might want to inspect it further:" >> $DIRPATH/Logs/Hidden_Data/Hidden_Data.log # Logs the suspicious file in the log.
-              binwalk $DOWNLOADEDIMAGES/$IMAGE >> $DIRPATH/Logs/Hidden_Data/Hidden_Data.log # Outputs the binwalk output to the log.
-              cp $DOWNLOADEDIMAGES/$IMAGE $DIRPATH/Logs/Hidden_Data # Copies the suspicious image to a folder.
-              echo "[>] [COPIED]: $IMAGE to Logs/Hidden_Data for further analysis" >> $DIRPATH/Logs/Hidden_Data/Hidden_Data.log
-              echo "" >> $DIRPATH/Logs/Hidden_Data/Hidden_Data.log # Just to seperate the outputs.
-              sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}' >> $DIRPATH/Logs/Hidden_Data/Scanned_Hidden_Data_Hashes.lst # Logs the sha256 hash to the Scanned_Hidden_Data_Hashes.lst file.
-            else
-              sha256sum $DOWNLOADEDIMAGES/$IMAGE | awk '{print $1}' >> $DIRPATH/Logs/Hidden_Data/Scanned_Hidden_Data_Hashes.lst # Logs the sha256 hash to the Scanned_Hidden_Data_Hashes.lst file.
-            fi
-          fi
-        done # End for IMAGE in loop. (binwalk)
-      done # End for FULLURL loop.
-  done # End of while true loop.
 }
 
 # Introduction of the script:
 function BEGINNING {
-  echo "===========================================================================" | tee -a $STEPS
-  figlet "Metadata Finder" -c | tee -a $STEPS
-  echo "===========================================================================" | tee -a $STEPS
-  echo "$(date -u): [>] [STARTED]: BEGINNING." | tee -a $STEPS
-  tput bold && echo "The following script does the following:" && tput sgr0
-  echo "1.  Installs Nipe (Anonymity) and activates it.
+	mkdir Downloaded_Images
+	echo "===========================================================================" | tee -a $STEPS
+	figlet "Metadata Scanner" -c | tee -a $STEPS
+	echo "===========================================================================" | tee -a $STEPS
+	echo "$(date -u): [>] [STARTED]: BEGINNING." | tee -a $STEPS
+	tput bold && echo "The following script does the following:" && tput sgr0
+	echo "1.  Installs Nipe (Anonymity) and activates it.
 2.  Installs ExifTool if you don't have it.
 3.  Making sure that Nipe is active before starting the script.
-4.  Creating necessary directories and sub-directories in the parent directory (Project_Metadata)
-5.  Downloads images from websites of your choice. (You can add URLs as you see fit without stopping the script - See 'URLs.db' file for more info)
-6.  Scans all images with Exiftool for GPS metadata. If any is found - copies the images to another directory for further analysis.
-7.  Scans all images with Binwalk for hidden data. If any is found - copies the images to another directory for further analysis.
-8.  Skips images that it had scanned before, saving time and power.
-9.  Removes images that it had scanned before.
-10. The script creates another script (Continue_After_Reboot.sh) that starts the Metadata_Scanner from the last point it was terminated and in background.
+4.  Creating necessary directories and sub-directories in the parent directory (Metadata-Scanner)
+5. The script creates another script (Continue_After_Reboot.sh) that starts the Metadata_Scanner from the last point it was terminated and in background.
+Usage:
+	1. Run Metadata_Scanner.sh - This will start wget to download images recursivley.
+	2. Leave it running in the background.
+	3. Start scan.sh to start scanning.
+	4. Stop scan.sh when this script is done downloading all the files from the websites.
 For more information about how to properly use and work with the script - see 'User Manual.pdf' file."
-  sleep 20
-  tput bold && echo "Would you like to start or exit? (Type 1 or 2)" && tput sgr0
-  select yn in "Start" "Exit"; do
-      case $yn in
-          Start ) break;;
-          Exit ) exit;;
-      esac
-  done
+	sleep 5
+	tput bold && echo "Would you like to start or exit? (Type 1 or 2)" && tput sgr0
+	select yn in "Start" "Exit"; do
+		case $yn in
+		Start ) break;;
+		Exit ) exit;;
+		esac
+	done
   echo "$(date -u): [V] [COMPLETED]: BEGINNING." | tee -a $STEPS
   sleep 4
 }
@@ -170,25 +117,27 @@ To resume the scan, you may close the terminal now.'" >> $DIRPATH/Background_Met
 
 # Nipe Installation:
 function NIPE {
-  echo "Installing Nipe (for Anonymity)..."
-  sleep 3
-  # Cloning Nipe to current working directory and cd to nipe:
-  export PERL_MM_USE_DEFAULT=1
-  cd $DIRPATH
-  git clone -q https://github.com/GouveaHeitor/nipe
-  NIPEDIR=$(find $DIRPATH -type d -name nipe 2>/dev/null) # Nipe's Directory.
-  cd $NIPEDIR
+	if [[ `find . -type d -name "nipe" 2>/dev/null | wc -l` != "1" ]]; then
+	  echo "Installing Nipe (for Anonymity)..."
+	  sleep 3
+	  # Cloning Nipe to current working directory and cd to nipe:
+	  export PERL_MM_USE_DEFAULT=1
+	  cd $DIRPATH
+	  git clone -q https://github.com/GouveaHeitor/nipe
+	  NIPEDIR=$(find $DIRPATH -type d -name nipe 2>/dev/null) # Nipe's Directory.
+	  cd $NIPEDIR
 
-  # Installs libs and dependencies:
-  cpan install Try::Tiny Config::Simple JSON
+	  # Installs libs and dependencies:
+	  cpan install Try::Tiny Config::Simple JSON
 
-  # Nipe installation:
-  cd $NIPEDIR
-  perl nipe.pl install
-  echo "[+] [INSTALLED]: Nipe."
-  echo "$(date -u): [V] [COMPLETED]: NIPE." | tee -a $STEPS
-  cd $PWD
-  sleep 3
+	  # Nipe installation:
+	  cd $NIPEDIR
+	  perl nipe.pl install
+	  echo "[+] [INSTALLED]: Nipe."
+	  echo "$(date -u): [V] [COMPLETED]: NIPE." | tee -a $STEPS
+	  cd $PWD
+	  sleep 3
+	fi
 }
 
 # Anonymity check before running the script:
@@ -199,6 +148,7 @@ function ANONYMITY {
     cd $NIPEDIR
     ./nipe.pl restart
     cd $PWD
+    sleep 1
   done
   echo "[>] [STARTED]: Nipe."
   echo "$(date -u): [V] [COMPLETED]: ANONYMITY." | tee -a $STEPS
